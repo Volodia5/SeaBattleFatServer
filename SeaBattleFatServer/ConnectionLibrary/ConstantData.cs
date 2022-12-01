@@ -16,7 +16,8 @@ namespace ConnectionLibrary
 
         public static class Commands
         {
-            public const string GetField = "getfield";
+            public const string GetFields = "getfields";
+            public const string GetOpponentField = "getopponentfield";
             public const string Step = "step";
             public const string EndStep = "endstep";
         }
