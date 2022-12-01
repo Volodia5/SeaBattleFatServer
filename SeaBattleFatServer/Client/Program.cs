@@ -2,30 +2,34 @@
 using ConnectionLibrary.Entity;
 using ConnectionLibrary.Tools;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Client
 {
-     class Program
+    class Program
     {
         static void Main(string[] args)
         {
+
             TcpClient client = ConnectionTools.Connect();
 
             if (client != null)
                 Play(client);
 
             Console.ReadLine();
+
+            return;
+
         }
 
         private static void Play(TcpClient client)
         {
             try
             {
+                Console.OutputEncoding = Encoding.Unicode;
+
                 const int FielsSize = 10;
 
                 string team = ConnectionTools.GetResponce(client).Value;
@@ -45,7 +49,7 @@ namespace Client
                     switch (gameStatus)
                     {
                         case ConstantData.GameStates.Go:
-                            Console.WriteLine(GetField(client));
+                            PrintField(client, team);
                             Step(client, FielsSize);
                             Request request = new Request() { Command = ConstantData.Commands.EndStep };
                             ConnectionTools.SendRequest(client, request);
@@ -62,7 +66,8 @@ namespace Client
                 }
 
                 Console.Clear();
-                Console.WriteLine(GetField(client));
+                Console.WriteLine("Ваше поле: ");
+                Console.WriteLine(string.Join("Поле соперника:", GetFields(client)));
 
                 string winner = ConnectionTools.GetResponce(client).Value;
                 Console.WriteLine("Победил - " + winner);
@@ -70,6 +75,20 @@ namespace Client
             catch (Exception exception)
             {
                 Console.WriteLine("ERROR: " + exception.Message);
+            }
+        }
+
+        private static void PrintField(TcpClient client, string team)
+        {
+            if (team == "1")
+            {
+                Console.WriteLine("Ваше поле: ");
+                Console.WriteLine(string.Join("Поле соперника:", GetFields(client)));
+            }
+            else if (team == "2")
+            {
+                Console.WriteLine("Ваше поле: ");
+                Console.WriteLine(string.Join("Поле соперника:", GetFields(client)));
             }
         }
 
@@ -93,13 +112,13 @@ namespace Client
 
         private static string DeserializeField(string data)
         {
-            string[] lines = data.Split(':');
+            string[] lines = data.Split(':', '/');
             return string.Join("\n", lines);
         }
 
-        private static string GetField(TcpClient client)
+        private static string GetFields(TcpClient client)
         {
-            Request request = new Request() { Command = ConstantData.Commands.GetField };
+            Request request = new Request() { Command = ConstantData.Commands.GetFields };
             ConnectionTools.SendRequest(client, request);
 
             return DeserializeField(ConnectionTools.GetResponce(client).Value);
